@@ -26,8 +26,8 @@ var (
 			Help: "Number of peers grouped by their version",
 		},
 	)
-	gaia_number_of_peers_grouped_by_their_version = prometheus.NewCounterVec(
-		prometheus.CounterOpts{
+	gaia_number_of_peers_grouped_by_their_version = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
 			Name: "gaia_number_of_peers_grouped_by_their_version",
 			Help: "Pipeline Number of jobs",
 		},
@@ -53,13 +53,46 @@ func (c *Controller) ProcGaiaStatus(status GaiaStatus) {
 	// gaia_number_of_peers_grouped_by_their_version.WithLabelValues(status.Result.NodeInfo.Version).Add(1)
 }
 
-func parseFloatOrDefault(value string) float64 {
+func (c *Controller) ProcGaiaNet(versions map[string]int) {
+	for ver, count := range versions {
+		gaia_number_of_peers_grouped_by_their_version.WithLabelValues(ver).Set(parseFloatOrDefault(count))
+	}
+}
+
+func parseFloatOrDefault(value interface{}) float64 {
 	var defaultValue float64 = 0
-	if value == "" || value == "null" {
+	switch value := value.(type) {
+	case string:
+		f, _ := strconv.ParseFloat(value, 64)
+		return f
+	case int:
+		return (float64(value))
+	default:
 		return defaultValue
 	}
-	if f, err := strconv.ParseFloat(value, 64); err == nil {
-		return f
+}
+
+// Find all versions in GAIA Net Info
+func (c *Controller) FindVersions(data interface{}, versions map[string]int) {
+	// Define type  of data
+	switch value := data.(type) {
+	// If dict
+	case map[string]interface{}:
+		for key, val := range value {
+			if key == "version" {
+				if versionStr, ok := val.(string); ok {
+					versions[versionStr]++
+				}
+			} else {
+				// Рекурсивно обрабатываем вложенные объекты
+				c.FindVersions(val, versions)
+			}
+		}
+	// if list
+	case []interface{}:
+		// Если текущий объект - это массив, обрабатываем каждый элемент
+		for _, item := range value {
+			c.FindVersions(item, versions)
+		}
 	}
-	return defaultValue
 }

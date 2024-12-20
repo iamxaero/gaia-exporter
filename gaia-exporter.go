@@ -48,24 +48,39 @@ func main() {
 	go func() {
 		for {
 			// Get gaia status
-
 			// cmd := exec.Command("/Users/vk/.pyenv/versions/3.12.5/envs/3/bin/python", cfg.GaiaBin)
 			// output, err := cmd.Output()
 			output := ctrl.GaiaGetInfo(cfg.GaiaHost)
-
 			// Map output
 			var status controller.GaiaStatus
 			err := json.Unmarshal(output, &status)
 			if err != nil {
 				fmt.Printf("Parse JSON error: %v", err)
 			}
-
-			// Debug struct print
+			// Add to Prometheus
 			ctrl.ProcGaiaStatus(status)
-			fmt.Printf("Parsed Status:\n%+v\n", status)
 
-			// Ожидание перед следующим запуском
-			time.Sleep(10 * time.Second)
+			// Get NetInfo status
+			netinfo := ctrl.GaiaGetInfo(cfg.GaiaNetInfo)
+			var data interface{}
+
+			err = json.Unmarshal(netinfo, &data)
+			if err != nil {
+				fmt.Printf("Parse JSON error: %v", err)
+			}
+			// Count versions
+			versions := make(map[string]int)
+			ctrl.FindVersions(data, versions)
+			// Add to Prometheus
+			ctrl.ProcGaiaNet(versions)
+
+			// Debug print
+			fmt.Println("Net Info:")
+			for version, count := range versions {
+				fmt.Printf("Versions: %v, Count: %v\n", version, count)
+			}
+			// Wait
+			time.Sleep(time.Duration(cfg.Interval) * time.Second)
 		}
 	}()
 

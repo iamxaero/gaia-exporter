@@ -7,11 +7,13 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const fileName = "config.yaml"
+const fileName = "/opt/exporters/gaia-exporter.1.0.0/gaia-exporter/config.yaml"
 
 type Config struct {
-	GaiaPort string     `yaml:"Gaia Port"`
-	GaiaHost string     `yaml:"Gaia Host"`
+	GaiaPort    string `yaml:"Gaia Port"`
+	GaiaHost    string `yaml:"Gaia Host"`
+	GaiaNetInfo string `yaml:"Gaia Net Info"`
+	Interval    int    `yaml:"Interval"`
 }
 
 func New() *Config {

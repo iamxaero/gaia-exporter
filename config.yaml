@@ -1,3 +1,5 @@
 # Path to gaia bin
 Gaia Host: "http://138.2.163.27:26657/status?"
+Gaia Net Info: http://138.2.163.27:26657/net_info?
 Gaia Port: ":8080"
+Interval: 10
