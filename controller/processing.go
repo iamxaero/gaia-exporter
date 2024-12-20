@@ -2,37 +2,29 @@ package controller
 
 import (
 	"strconv"
+	"time"
+
 	"github.com/prometheus/client_golang/prometheus"
 )
 
 var (
-	gaia_highest_block_number = prometheus.NewGaugeVec(
+	gaia_highest_block_number = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			Name: "gaia_highest_block_number",
 			Help: "Highest block number the node has reached",
 		},
-		[]string{
-			"gaia_version",
-		},
 	)
-	gaia_current_block_time_drift_in_seconds = prometheus.NewGaugeVec(
+	gaia_current_block_time_drift_in_seconds = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			Name: "gaia_current_block_time_drift_in_seconds",
 			Help: "Current block time drift in seconds: Current time minus block creation time",
 		},
-		[]string{
-			"gaia_version",
-		},
 	)
-	gaia_number_of_connected_peers = prometheus.NewGaugeVec(
+	gaia_number_of_connected_peers = prometheus.NewGauge(
 		prometheus.GaugeOpts{
 			Name: "gaia_number_of_connected_peers",
 			Help: "Number of peers grouped by their version",
 		},
-		[]string{
-			"gaia_version",
-		},
-
 	)
 	gaia_number_of_peers_grouped_by_their_version = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
@@ -42,7 +34,6 @@ var (
 		[]string{
 			"gaia_version",
 		},
-
 	)
 )
 
@@ -54,11 +45,12 @@ func (c *Controller) PromRegister() {
 	prometheus.MustRegister(gaia_number_of_peers_grouped_by_their_version)
 }
 
-func (c *Controller) ProcGaiaStatus (status GaiaStatus) {
-	gaia_highest_block_number.WithLabelValues(status.NodeInfo.Version).Set(parseFloatOrDefault(status.SyncInfo.LatestBlockHeight))
-	gaia_current_block_time_drift_in_seconds.WithLabelValues(status.NodeInfo.Version).Set(parseFloatOrDefault(status.SyncInfo.LatestBlockTime))
-	gaia_number_of_connected_peers.WithLabelValues(status.NodeInfo.Version).Set(parseFloatOrDefault(status.NodeInfo.ProtocolVersion.Block))
-	gaia_number_of_peers_grouped_by_their_version.WithLabelValues(status.NodeInfo.Version).Add(1)
+func (c *Controller) ProcGaiaStatus(status GaiaStatus) {
+	gaia_highest_block_number.Set(parseFloatOrDefault(status.Result.SyncInfo.LatestBlockHeight))
+	gaia_current_block_time_drift_in_seconds.Set(float64(time.Now().Unix() - status.Result.SyncInfo.LatestBlockTime.Unix()))
+	// It can be wrong, check after the last metric
+	gaia_number_of_connected_peers.Set(parseFloatOrDefault(status.Result.NodeInfo.ProtocolVersion.P2P))
+	// gaia_number_of_peers_grouped_by_their_version.WithLabelValues(status.Result.NodeInfo.Version).Add(1)
 }
 
 func parseFloatOrDefault(value string) float64 {

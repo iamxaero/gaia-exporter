@@ -7,12 +7,11 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-const CI = "gitlab"
 const fileName = "config.yaml"
 
 type Config struct {
-	GaiaBin string   `yaml:"Gaia Bin Path"`
 	GaiaPort string     `yaml:"Gaia Port"`
+	GaiaHost string     `yaml:"Gaia Host"`
 }
 
 func New() *Config {

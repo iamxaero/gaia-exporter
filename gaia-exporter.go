@@ -3,13 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"os/exec"
 	"time"
-
 
 	"example.com/gaia-exporter/config"
 	"example.com/gaia-exporter/controller"
-
 
 	"context"
 	"net/http"
@@ -22,7 +19,6 @@ import (
 	"github.com/cloudflare/cfssl/log"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
-
 
 func main() {
 	// Config
@@ -52,29 +48,26 @@ func main() {
 	go func() {
 		for {
 			// Get gaia status
-			cmd := exec.Command("/Users/vk/.pyenv/versions/3.12.5/envs/3/bin/python", cfg.GaiaBin)
-			output, err := cmd.Output()
-			if err != nil {
-				fmt.Printf("Gaia status error: %v", err)
-				continue
-			}
-	
+
+			// cmd := exec.Command("/Users/vk/.pyenv/versions/3.12.5/envs/3/bin/python", cfg.GaiaBin)
+			// output, err := cmd.Output()
+			output := ctrl.GaiaGetInfo(cfg.GaiaHost)
+
 			// Map output
 			var status controller.GaiaStatus
-			err = json.Unmarshal(output, &status)
+			err := json.Unmarshal(output, &status)
 			if err != nil {
 				fmt.Printf("Parse JSON error: %v", err)
-				continue
 			}
-	
+
 			// Debug struct print
 			ctrl.ProcGaiaStatus(status)
 			fmt.Printf("Parsed Status:\n%+v\n", status)
-	
+
 			// Ожидание перед следующим запуском
 			time.Sleep(10 * time.Second)
 		}
-		}()
+	}()
 
 	// Start http server
 	go func() {
