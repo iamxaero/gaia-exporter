@@ -21,6 +21,7 @@ import (
 )
 
 func main() {
+	fmt.Println("Gaia exporter started")
 	// Config
 	cfg := config.New()
 	ctrl := controller.New(cfg)
@@ -75,10 +76,10 @@ func main() {
 			ctrl.ProcGaiaNet(versions)
 
 			// Debug print
-			fmt.Println("Net Info:")
-			for version, count := range versions {
-				fmt.Printf("Versions: %v, Count: %v\n", version, count)
-			}
+			// fmt.Println("Net Info:")
+			// for version, count := range versions {
+			// 	fmt.Printf("Versions: %v, Count: %v\n", version, count)
+			// }
 			// Wait
 			time.Sleep(time.Duration(cfg.Interval) * time.Second)
 		}
